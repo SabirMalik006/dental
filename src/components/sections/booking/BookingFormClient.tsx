@@ -519,13 +519,15 @@ export const BookingFormClient: React.FC<BookingFormClientProps> = ({ services, 
               </div>
 
               {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full sm:w-fit font-bold transition-all duration-300 rounded-full text-xs px-9 py-4 bg-accent text-white hover:bg-accent-hover btn-diagonal-stripe shadow-md cursor-pointer disabled:opacity-50 mt-2"
-              >
-                {loading ? 'Submitting Request...' : 'Confirm Appointment Request'}
-              </button>
+              <div className="flex justify-center">
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full sm:w-fit font-bold transition-all duration-300 rounded-full text-xs px-9 py-4 bg-accent text-white hover:bg-accent-hover btn-diagonal-stripe shadow-md cursor-pointer disabled:opacity-50 mt-2"
+                >
+                  {loading ? 'Submitting Request...' : 'Confirm Appointment Request'}
+                </button>
+              </div>
             </motion.form>
 
             {/* Sidebar Summary Card */}
