@@ -3,10 +3,13 @@ import { getDoctors } from '@/data/doctors';
 
 export interface AppointmentInput {
   patientName: string;
+  age?: number | null;
+  gender?: string | null;
   email: string;
   phone: string;
   whatsapp?: string | null;
-  serviceId: string;
+  serviceId?: string | null;
+  customTreatment?: string | null;
   doctorId?: string | null;
   preferredDate?: string | Date | null;
   preferredTime?: string | null;
@@ -15,11 +18,21 @@ export interface AppointmentInput {
 
 export async function submitAppointment(data: AppointmentInput) {
   const preferredDate = data.preferredDate ? new Date(data.preferredDate) : null;
+  const serviceIdClean =
+    data.serviceId && data.serviceId.trim().length > 0 ? data.serviceId : null;
+  const customTreatment = data.customTreatment?.trim() || null;
 
-  // Look up Service for write-time snapshot
-  const service = await prisma.service.findUnique({
-    where: { id: data.serviceId },
-  });
+  if (!serviceIdClean && !customTreatment) {
+    throw new Error('Service selection is required');
+  }
+
+  let serviceTitle = customTreatment || 'General Consultation';
+  if (serviceIdClean) {
+    const service = await prisma.service.findUnique({
+      where: { id: serviceIdClean },
+    });
+    if (service) serviceTitle = service.title;
+  }
 
   const doctorIdClean = data.doctorId && data.doctorId.trim().length > 0 ? data.doctorId : null;
   let doctorNameSnapshot: string | null = null;
@@ -34,11 +47,13 @@ export async function submitAppointment(data: AppointmentInput) {
   return prisma.appointment.create({
     data: {
       patientName: data.patientName,
+      age: data.age ?? null,
+      gender: data.gender || null,
       email: data.email,
       phone: data.phone,
       whatsapp: data.whatsapp || data.phone,
-      serviceId: data.serviceId,
-      serviceTitle: service ? service.title : 'General Consultation',
+      serviceId: serviceIdClean,
+      serviceTitle,
       doctorId: doctorIdClean,
       doctorName: doctorNameSnapshot,
       preferredDate: preferredDate && !isNaN(preferredDate.getTime()) ? preferredDate : null,

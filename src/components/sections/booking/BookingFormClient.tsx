@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Calendar as CalendarIcon, Clock, CheckCircle2, User, Mail, Phone, FileText, ArrowRight, ShieldCheck, MessageSquare } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, CheckCircle2, User, Mail, Phone, FileText, ArrowRight, ShieldCheck, MessageSquare, Hash, Users } from 'lucide-react';
 import Container from '@/components/ui/Container';
 import SectionHeading from '@/components/ui/SectionHeading';
 import { Service, Doctor } from '@/types';
@@ -21,11 +21,15 @@ export const BookingFormClient: React.FC<BookingFormClientProps> = ({ services, 
 
   // Form Fields
   const [patientName, setPatientName] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [whatsappSameAsPhone, setWhatsappSameAsPhone] = useState(true);
   const [whatsapp, setWhatsapp] = useState('');
   const [serviceId, setServiceId] = useState('');
+  const [customTreatment, setCustomTreatment] = useState('');
+  const [isOtherService, setIsOtherService] = useState(false);
   const [doctorId, setDoctorId] = useState('');
   const [preferredDate, setPreferredDate] = useState('');
   const [preferredTime, setPreferredTime] = useState('Morning (9am - 12pm)');
@@ -65,6 +69,10 @@ export const BookingFormClient: React.FC<BookingFormClientProps> = ({ services, 
 
     // Validations
     if (!patientName.trim()) return setErrorMsg('Full Name is required.');
+    if (!age.trim() || Number.isNaN(Number(age)) || Number(age) < 1 || Number(age) > 120) {
+      return setErrorMsg('Valid age (1-120) is required.');
+    }
+    if (!gender) return setErrorMsg('Please select gender.');
     if (!email.trim() || !/\S+@\S+\.\S+/.test(email)) return setErrorMsg('Valid email address is required.');
     if (!phone.trim() || phone.replace(/\D/g, '').length < 7) {
       return setErrorMsg('Valid phone number (min 7 digits) is required.');
@@ -74,7 +82,11 @@ export const BookingFormClient: React.FC<BookingFormClientProps> = ({ services, 
         return setErrorMsg('Valid WhatsApp number (min 7 digits) is required, or check "Same as phone".');
       }
     }
-    if (!serviceId) return setErrorMsg('Please select a service for your appointment.');
+    if (isOtherService) {
+      if (!customTreatment.trim()) return setErrorMsg('Please type your treatment name.');
+    } else if (!serviceId) {
+      return setErrorMsg('Please select a service for your appointment.');
+    }
 
     setLoading(true);
 
@@ -84,10 +96,13 @@ export const BookingFormClient: React.FC<BookingFormClientProps> = ({ services, 
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           patientName,
+          age: Number(age),
+          gender,
           email,
           phone,
           whatsapp: whatsappSameAsPhone ? phone : whatsapp,
-          serviceId,
+          serviceId: isOtherService ? null : serviceId,
+          customTreatment: isOtherService ? customTreatment.trim() : null,
           doctorId: doctorId || null,
           preferredDate: preferredDate || null,
           preferredTime: preferredTime || null,
@@ -110,6 +125,9 @@ export const BookingFormClient: React.FC<BookingFormClientProps> = ({ services, 
 
   const selectedServiceObj = services.find((s) => s.id === serviceId);
   const selectedDoctorObj = doctors.find((d) => d.id === doctorId);
+  const treatmentLabel = isOtherService
+    ? customTreatment.trim() || 'Other (typing...)'
+    : selectedServiceObj?.title;
 
   return (
     <div className="bg-bg py-12 md:py-16">
@@ -145,7 +163,7 @@ export const BookingFormClient: React.FC<BookingFormClientProps> = ({ services, 
             <p className="text-sm text-body-text leading-relaxed mb-6">
               Thank you, <span className="font-bold text-slate-800">{submittedData.patientName}</span>.
               We have received your reservation request for{' '}
-              <span className="font-bold text-primary">{submittedData.service?.title || 'your consultation'}</span>.
+              <span className="font-bold text-primary">{submittedData.service?.title || submittedData.serviceTitle || 'your consultation'}</span>.
             </p>
 
             <div className="w-full bg-slate-50 rounded-2xl p-5 border border-slate-100 text-left text-xs space-y-2 mb-8">
@@ -154,12 +172,18 @@ export const BookingFormClient: React.FC<BookingFormClientProps> = ({ services, 
                 <span className="font-bold text-slate-800">{submittedData.patientName}</span>
               </div>
               <div className="flex justify-between">
+                <span className="text-slate-400">Age / Gender:</span>
+                <span className="font-bold text-slate-800">
+                  {submittedData.age ?? '—'} / {submittedData.gender || '—'}
+                </span>
+              </div>
+              <div className="flex justify-between">
                 <span className="text-slate-400">Phone:</span>
                 <span className="font-bold text-slate-800">{submittedData.phone}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-400">Selected Service:</span>
-                <span className="font-bold text-primary">{submittedData.service?.title}</span>
+                <span className="font-bold text-primary">{submittedData.service?.title || submittedData.serviceTitle}</span>
               </div>
               {submittedData.doctor && (
                 <div className="flex justify-between">
@@ -188,10 +212,17 @@ export const BookingFormClient: React.FC<BookingFormClientProps> = ({ services, 
                 onClick={() => {
                   setSubmittedData(null);
                   setPatientName('');
+                  setAge('');
+                  setGender('');
                   setEmail('');
                   setPhone('');
                   setWhatsappSameAsPhone(true);
                   setWhatsapp('');
+                  setServiceId('');
+                  setCustomTreatment('');
+                  setIsOtherService(false);
+                  setDoctorId('');
+                  setPreferredDate('');
                   setNotes('');
                 }}
                 className="font-bold text-xs px-6 py-3 rounded-full bg-primary text-white hover:bg-primary-hover transition-colors shadow-sm cursor-pointer"
@@ -244,6 +275,49 @@ export const BookingFormClient: React.FC<BookingFormClientProps> = ({ services, 
                       </span>
                     )}
                   </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-[#333333] uppercase tracking-wide flex items-center gap-1.5">
+                    <Hash className="w-3.5 h-3.5 text-primary" />
+                    Age *
+                  </label>
+                  <div className="relative w-full">
+                    <input
+                      type="number"
+                      required
+                      min={1}
+                      max={120}
+                      value={age}
+                      onChange={(e) => setAge(e.target.value)}
+                      placeholder="e.g. 32"
+                      className="w-full px-4 py-3 bg-[#F0F0F0] border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition-all duration-300 text-xs pr-10"
+                    />
+                    {age.trim().length > 0 && Number(age) >= 1 && Number(age) <= 120 && (
+                      <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-emerald-600 flex items-center justify-center animate-fade-in pointer-events-none">
+                        <CheckCircle2 className="w-4 h-4" />
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-[#333333] uppercase tracking-wide flex items-center gap-1.5">
+                    <Users className="w-3.5 h-3.5 text-primary" />
+                    Gender *
+                  </label>
+                  <select
+                    id="gender"
+                    required
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value)}
+                    className="px-4 py-3 bg-[#F0F0F0] border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition-all duration-300 text-xs font-semibold text-slate-800 cursor-pointer"
+                  >
+                    <option value="">-- Select Gender --</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
@@ -339,9 +413,19 @@ export const BookingFormClient: React.FC<BookingFormClientProps> = ({ services, 
                   </label>
                   <select
                     id="serviceId"
-                    required
-                    value={serviceId}
-                    onChange={(e) => setServiceId(e.target.value)}
+                    required={!isOtherService}
+                    value={isOtherService ? '__other__' : serviceId}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === '__other__') {
+                        setIsOtherService(true);
+                        setServiceId('');
+                      } else {
+                        setIsOtherService(false);
+                        setCustomTreatment('');
+                        setServiceId(v);
+                      }
+                    }}
                     className="px-4 py-3 bg-[#F0F0F0] border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition-all duration-300 text-xs font-semibold text-slate-800 cursor-pointer"
                   >
                     <option value="">-- Select Treatment / Service --</option>
@@ -350,7 +434,18 @@ export const BookingFormClient: React.FC<BookingFormClientProps> = ({ services, 
                         {s.title}
                       </option>
                     ))}
+                    <option value="__other__">Other</option>
                   </select>
+                  {isOtherService && (
+                    <input
+                      type="text"
+                      required
+                      value={customTreatment}
+                      onChange={(e) => setCustomTreatment(e.target.value)}
+                      placeholder="Type your treatment name..."
+                      className="mt-2 px-4 py-3 bg-[#F0F0F0] border border-transparent rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:bg-white transition-all duration-300 text-xs"
+                    />
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-1.5">
@@ -454,7 +549,7 @@ export const BookingFormClient: React.FC<BookingFormClientProps> = ({ services, 
                 <div className="bg-bg-alt/70 p-3.5 rounded-2xl border border-slate-100">
                   <span className="text-slate-400 block text-[10px] font-bold uppercase">Selected Treatment</span>
                   <span className="font-bold text-primary text-sm mt-0.5 block">
-                    {selectedServiceObj ? selectedServiceObj.title : 'Not Selected Yet'}
+                    {treatmentLabel || 'Not Selected Yet'}
                   </span>
                 </div>
 

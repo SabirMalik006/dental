@@ -405,8 +405,8 @@ export const AppointmentsAdminContent: React.FC<AppointmentsAdminContentProps> =
                     </div>
 
                     {/* Service */}
-                    <div className="col-span-1 font-bold text-primary text-xs truncate" title={a.service?.title || 'Unknown Service'}>
-                      {a.service?.title || 'Unknown Service'}
+                    <div className="col-span-1 font-bold text-primary text-xs truncate" title={a.service?.title || a.serviceTitle || 'Unknown Service'}>
+                      {a.service?.title || a.serviceTitle || 'Unknown Service'}
                     </div>
 
                     {/* Doctor */}
@@ -490,13 +490,25 @@ export const AppointmentsAdminContent: React.FC<AppointmentsAdminContentProps> =
                 <div>
                   <span className="text-[9px] uppercase font-bold text-slate-400 block">Service</span>
                   <span className="font-bold text-primary text-sm mt-0.5 block">
-                    {selectedItem.service?.title}
+                    {selectedItem.service?.title || selectedItem.serviceTitle}
                   </span>
                 </div>
                 <div>
                   <span className="text-[9px] uppercase font-bold text-slate-400 block">Doctor</span>
                   <span className="font-bold text-slate-800 text-sm mt-0.5 block">
                     {selectedItem.doctor ? selectedItem.doctor.name : 'No Preference'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[9px] uppercase font-bold text-slate-400 block">Age</span>
+                  <span className="font-bold text-slate-800 text-sm mt-0.5 block">
+                    {selectedItem.age ?? '—'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[9px] uppercase font-bold text-slate-400 block">Gender</span>
+                  <span className="font-bold text-slate-800 text-sm mt-0.5 block">
+                    {selectedItem.gender || '—'}
                   </span>
                 </div>
               </div>

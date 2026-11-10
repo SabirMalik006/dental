@@ -85,12 +85,14 @@ enum AppointmentStatus {
 model Appointment {
   id            String            @id @default(auto()) @map("_id") @db.ObjectId
   patientName   String
+  age           Int?
+  gender        String?
   email         String
   phone         String
   whatsapp      String?
-  serviceId     String            @db.ObjectId
-  serviceTitle  String            // Write-time snapshot field
-  service       Service           @relation(fields: [serviceId], references: [id])
+  serviceId     String?           @db.ObjectId
+  serviceTitle  String            // Write-time snapshot field (incl. custom "Other" treatment)
+  service       Service?          @relation(fields: [serviceId], references: [id])
   doctorId      String?           @db.ObjectId
   doctorName    String?           // Write-time snapshot field
   doctor        Doctor?           @relation(fields: [doctorId], references: [id])
