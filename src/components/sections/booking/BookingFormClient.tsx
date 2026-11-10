@@ -409,7 +409,7 @@ export const BookingFormClient: React.FC<BookingFormClientProps> = ({ services, 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-3 border-t border-slate-100">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-bold text-[#333333] uppercase tracking-wide">
-                    Select Service *
+                    Select Treatment *
                   </label>
                   <select
                     id="serviceId"
