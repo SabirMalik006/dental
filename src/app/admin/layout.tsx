@@ -126,7 +126,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Mobile Top Navbar */}
       <div className="lg:hidden flex items-center justify-between px-4 h-14 bg-[#2E2E2E] text-[#A0A0A0] border-b border-[#222222] select-none shrink-0 z-30">
         <Link href="/" className="flex items-center">
-          <Logo variant="dark" className="!h-7 !w-auto !aspect-[2.55/1]" />
+          <Logo variant="dark" className="!h-7 !w-7 !aspect-square" />
         </Link>
         <button
           type="button"
@@ -161,7 +161,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="p-6 border-b border-[#222222] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3 overflow-hidden">
             {!isCollapsed ? (
-              <Logo variant="dark" className="!h-7 !w-auto" />
+              <Logo variant="dark" className="!h-7 !w-7 !aspect-square" />
             ) : (
               <Logo variant="icon" className="!h-6 !w-6" />
             )}
